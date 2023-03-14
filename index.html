@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+    <head></head>
+    <body>
+        <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.min.js"></script>
+        <script>
+            function log(i) {document.getElementById('status').innerText += `\n[${new Date().toISOString()}] ` + i;}
+
+            document.addEventListener("DOMContentLoaded", function() {
+                let lastStartTime;
+                let timerIntervId;
+                const recordTime = document.getElementById('record_time');
+                const start = document.getElementById('start_record');
+                const stop = document.getElementById('stop_record');
+                const reportTime = () => {
+                    if (lastStartTime) {
+                        recordTime.innerText = `${(performance.now() - lastStartTime).toFixed(1)} ms`;
+                    }
+                };
+
+                start.disabled = true;
+                start.addEventListener("click", ()=>{
+                    log('start to record.');
+                    start.disabled = true;
+                    stop.disabled = false;
+                    lastStartTime = performance.now();
+                    timerIntervId = setInterval(reportTime, 333);
+                    startRecord();
+                });
+
+                stop.disabled = true;
+                stop.addEventListener("click", ()=>{
+                    log('stop to record.');
+                    start.disabled = false;
+                    stop.disabled = true;
+                    if (timerIntervId) {
+                        clearInterval(timerIntervId);
+                        timerIntervId = undefined;
+                    }
+                    reportTime();
+                    lastStartTime = undefined;
+                    stopRecord();
+                });
+
+                log('window loaded. loading model ...');
+                init().then(() => {
+                    log('model loaded.');
+                    start.disabled = false;
+                });
+            });
+        </script>
+        <script src="./whisper.js"></script>
+
+        <div>
+            <button id="start_record">start record</button>
+            <button id="stop_record">end record</button>
+            <div id="record_play"></div>
+            <div id="record_time"></div>
+            <div id="status" style="border:1px solid black; font: 1em consolas;"></div>
+        </div>
+    </body>
+</html>
